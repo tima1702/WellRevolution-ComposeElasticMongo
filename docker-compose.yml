@@ -1,0 +1,46 @@
+version: '3.5'
+services:
+  es01:
+    container_name: es01
+    image: elasticsearch:7.7.0
+    networks:
+      - api
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=es01
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - 9200:9200
+
+  mongo01:
+    container_name: mongo01
+    image: mongo:4.2.7
+    networks:
+      - api
+    ports:
+      - 27017:27017
+    volumes:
+     - .mongo:/usr/src/app
+
+  node01:
+    container_name: node01
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - api
+    ports:
+      - 80:80
+    depends_on:
+      - es01
+      - mongo01
+
+networks:
+  api:
+    driver: bridge
